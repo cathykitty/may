@@ -12,7 +12,10 @@ cursor moves left,down,up,right by 'h','j','k','l' key input
 
 enum MODE {
 	COMMAND_MODE,
-	INPUT_MODE
+	INPUT_MODE,
+	DELETE_MODE,
+	STORE_MODE,
+	BRING_MODE
 };
 
 int main(int argc,char *argv[])
@@ -110,6 +113,28 @@ int main(int argc,char *argv[])
 				break;
 			} //end switch
 			//end INPUT_MODE
+		}
+		else if(mode==DELETE_MODE){
+			switch(key){
+			case '1':
+				mode = COMMAND_MODE;
+				tcgetattr(STDIN_FILENO,&curt);
+				new = curt;
+				newt.c_lflag &= ~(ECHO);
+				tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+				break;
+			default:
+				mode = DELETE_MODE;
+				cur_col--;
+				NULL=data[cur_col +1][cur_line +1];
+				if(cur_col<min_col){
+					cur_col=80;
+					cur_line--;
+					if(cur_line < min_line) cur_line = min_line;
+				}
+				break;
+			}//end switch
+			//end DELETE_MODE
 		}
 		
 		sprintf(buff, "\033[%d;%dH%3d:%3d",1,70,cur_line,cur_col);
