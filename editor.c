@@ -89,7 +89,7 @@ int main(int argc,char *argv[])
 		}
 		else if(mode==INPUT_MODE){
 			switch(key){
-			case 27: //escape key code
+			case '1': //escape key code
 				mode = COMMAND_MODE;
 				tcgetattr(STDIN_FILENO,&curt);
 				newt = curt;
