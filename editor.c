@@ -10,7 +10,7 @@ initial cursor position is 1.1
 
 cursor moves left,down,up,right by 'h','j','k','l' key input
 */
-
+/*
 typedef struct ListNodeType ListNode;
 struct ListNodeType
 {
@@ -29,7 +29,7 @@ LinkedList* createLinkedList()
 {
 	LinkedList* pList;
 	pList = (LinkedList*)malloc(sizeof(LinkedList));
-	if(pList != NULL)
+	if(pList !=NULL)
 	{
 		pList->currentElement=0;
 		pList->headerNode.link = NULL;
@@ -50,14 +50,14 @@ void addNode(LinkedList* pList, ListNode* newNode)
 	}
 	else
 	{
-		while(preNode->link ! = NULL)
+		while(preNode->link != NULL)
 		{
 			preNode = preNode-> link;
 		}
 		preNode-> link = pNewNode;
 	}
 }
-
+*/
 enum MODE {
 	COMMAND_MODE,
 	INPUT_MODE,
@@ -69,16 +69,20 @@ enum MODE {
 int main(int argc,char *argv[])
 {
 	int n = 0;
-	FILE* stream;
+//	FILE* stream;
 	LinkedList* pList;
 	ListNode *Node;
-	stream = fopen("editor.txt","rt");//r인가?
+//	stream = fopen("editor.txt","rt");//r인가?
 	pList = createLinkedList();
 	while(!feof(stream))
 	{
 		Node=(ListNode*)malloc(sizeof(ListNode));
-		fscanf(stream,"%c",data[][]);//여기 다시보기
+}
+
+//	char data[80][20];
+//	fscanf(stream,"%s",data);//여기 다시보기
 		
+
 
 	char buff[255];
 	enum MODE mode = COMMAND_MODE;
@@ -176,7 +180,7 @@ int main(int argc,char *argv[])
 		}
 		else if(mode==INPUT_MODE){
 			switch(key){
-			case '1': //escape key code
+			case 27: //escape key code
 				mode = COMMAND_MODE;
 				tcgetattr(STDIN_FILENO,&curt);
 				newt = curt;
