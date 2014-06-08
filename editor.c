@@ -8,7 +8,7 @@
 At command mode,we can move cursor.
 initial cursor position is 1.1
 
-cursor moves left,down,up,right by 'h','j','k','l' key input
+cursor moves left,up,down,right by 'h','j','k','l' key input
 */
 /*
 typedef struct ListNodeType ListNode;
@@ -58,7 +58,20 @@ void addNode(LinkedList* pList, ListNode* newNode)
 	}
 }
 */
-enum MODE {
+char buff[255];
+int cur_line = 1;
+int cur_col = 1;
+const int min_line = 1;
+const int min_col = 1;
+const int max_line = 20;
+const int max_col = 80;
+char data[80][20];
+char key;
+int ret;
+struct termios oldt,curt,newt;
+
+//mode 설정
+enum MODES {
 	COMMAND_MODE,
 	INPUT_MODE,
 	DELETE_MODE,
@@ -68,35 +81,24 @@ enum MODE {
 
 int main(int argc,char *argv[])
 {
-	int n = 0;
+//	int n = 0;
 //	FILE* stream;
-	LinkedList* pList;
-	ListNode *Node;
+//	LinkedList* pList;
+//	ListNode *Node;
 //	stream = fopen("editor.txt","rt");//r인가?
-	pList = createLinkedList();
-	while(!feof(stream))
-	{
-		Node=(ListNode*)malloc(sizeof(ListNode));
-}
+//	pList = createLinkedList();
+//	while(!feof(stream))
+//	{
+//		Node=(ListNode*)malloc(sizeof(ListNode));
+//}
 
-//	char data[80][20];
 //	fscanf(stream,"%s",data);//여기 다시보기
-		
+	enum MODES mode = COMMAND_MODE;
 
+//	int key,ret;
+	
 
-	char buff[255];
-	enum MODE mode = COMMAND_MODE;
-
-	int cur_line = 1;
-	int cur_col = 1;
- 	const int min_line = 1;
-	const int min_col = 1;
-	const int max_line = 20;
-	const int max_col = 80;
-	int key,ret;
-	char data[80][20];
-
-	FILE * fp =fopen("editor.txt","wt");
+/*	FILE * fp =fopen("editor.txt","wt");
 	if(fp==NULL){
 		puts("file open failure!");
 		return -1;
@@ -118,13 +120,14 @@ int main(int argc,char *argv[])
 		ch=fgetc(fw);
 		printf("%c \n",ch);
 	}
-	fclose(fw);				
+	fclose(fw);		
+*/		
  	/*some initialization */
 	fputs("\033[2J",stdout);
 	fputs("\033[1;1H",stdout);
 
 		
-	struct termios oldt,curt,newt;
+//	struct termios oldt,curt,newt;
 
 	tcgetattr(STDIN_FILENO, &oldt);
 	newt = oldt;
@@ -154,25 +157,67 @@ int main(int argc,char *argv[])
 				newt.c_lflag |= (ECHO);
 				tcsetattr(STDIN_FILENO,TCSANOW,&newt);
 				break;
+			case 'd':
+				mode = DELETE_MODE;
+      		    tcgetattr(STDIN_FILENO, & curt);
+                newt = curt;
+                newt.c_lflag |= (ECHO);
+                tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+                break;
+			case 's':
+				mode = STORE_MODE;
+     			tcgetattr(STDIN_FILENO, & curt);
+                newt = curt;
+                newt.c_lflag |= (ECHO);
+                tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+                break;
+			case 'b':
+				mode = BRING_MODE;
+     			tcgetattr(STDIN_FILENO, & curt);
+                newt = curt;
+                newt.c_lflag |= (ECHO);
+                tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+                break;
 			case 'h':
 				cur_col--;
-				if(cur_col<min_col) cur_col = min_col;
+				if(cur_col<min_col){
+					if(cur_line ==1 && cur_line ==1 ){
+						cur_col = min_col;
+						cur_line = min_line; 
+				}						
+				
+					else{
+					cur_col=80;
+					cur_line--;
+				 if(cur_line<min_line) cur_line = min_line;	
+				}
+				}
 				break;
-			case 'j':
+			case 'k':
 				cur_line++;
 				if(cur_line>max_line) cur_line = max_line;
 				break;
-			case 'k':
+			case 'j':
 				cur_line--;
 				if(cur_line<min_line) cur_line = min_line;
 				break;
 			case 'l':
+			
+					if(cur_line == 20 && cur_col == 80) {
+						cur_col= max_col;
+                    	cur_line = max_line;
+					}
+				else{
 				cur_col++;
-				if(cur_col> max_col){
+				if(cur_col>max_col){
+				
 					cur_col = 1;
 					cur_line++;
 					if(cur_line>max_line) cur_line = max_line;
+			
 				}
+}
+
 				break;
 			}//end switch
 			
@@ -204,7 +249,7 @@ int main(int argc,char *argv[])
 		}
 		else if(mode==DELETE_MODE){
 			switch(key){
-			case '1':
+			case '27':
 				mode = COMMAND_MODE;
 				tcgetattr(STDIN_FILENO,&curt);
 				newt = curt;
@@ -224,8 +269,38 @@ int main(int argc,char *argv[])
 			}//end switch
 			//end DELETE_MODE
 		}
-		
-		sprintf(buff, "\033[%d;%dH%3d:%3d",1,70,cur_line,cur_col);
+		else if(mode==STORE_MODE){
+			 switch(key){
+             case '27':
+                 mode = COMMAND_MODE;
+                 tcgetattr(STDIN_FILENO,&curt);
+                 newt = curt;
+                 newt.c_lflag &= ~(ECHO);
+                 tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+                 break;
+			 default:
+				mode= STORE_MODE;
+			}//end switch
+			//end STORE_MODE
+		}
+				//여기에 이제 STOTR모드 관련된거 쓰면됨
+		else if(mode==BRING_MODE){
+			switch(key){
+            case '27':
+                  mode = COMMAND_MODE;
+                  tcgetattr(STDIN_FILENO,&curt);
+                  newt = curt;
+                  newt.c_lflag &= ~(ECHO);
+                  tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+                  break;
+            default:
+				mode= BRING_MODE;
+				//BRING 모드 관련된거 쓰기
+
+			}//end switch
+			//end BRING_MODE
+		}
+		sprintf(buff, "\033[%d;%dH%3d:%3d" ,1,70,cur_line,cur_col);
 		fputs(buff,stdout);
 		sprintf(buff,"\033[%d;%dH",cur_line,cur_col);
 		fputs(buff,stdout);
