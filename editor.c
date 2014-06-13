@@ -8,19 +8,21 @@
 At command mode,we can move cursor.
 initial cursor position is 1.1
 cursor moves left,up,down,right by 'h','j','k','l' key input
+At input mode,we can input text.
+
 */
 char buff[255];
 int cur_line = 1;
 int cur_col = 1;
 const int min_line = 1;
 const int min_col = 1;
-const int max_line = 50;
-const int max_col = 100;
-char text[100][50];
+const int max_line = 20;
+const int max_col = 80;
+char text[80][20];
 char key,key1,key2;
 int ret;
 int condition = 1;
-int condition1 =1;
+int condition1 = 1;
 int iOpen;
 struct termios oldt,newt;
 
@@ -28,10 +30,7 @@ struct termios oldt,newt;
 //mode 설정
 enum MODES {
 	COMMAND_MODE,
-	INPUT_MODE,
-	DELETE_MODE,
-	STORE_MODE,
-	BRING_MODE
+	INPUT_MODE
 };
 
 int main(int argc,char *argv[]){
@@ -42,6 +41,7 @@ int main(int argc,char *argv[]){
 //}
 
 //	fscanf(stream,"%s",data);//여기 다시보기
+//	char buff[255];
 	enum MODES mode = COMMAND_MODE;
 
 /*	FILE * fp =fopen("editor.txt","wt");
@@ -53,9 +53,6 @@ int main(int argc,char *argv[]){
 	fputs("data[][]",fp);
 	fclose(fp);
 
-	//Bring stored data
-	int ch,i;
-	//파일로부터 데이터 어떻게 읽어오지?
 	FILE *fw = fopen("editor.txt","rt");
 	if(fw==NULL){
 		puts("file open failure!");
@@ -70,20 +67,19 @@ int main(int argc,char *argv[]){
 */		
  
 
-/*	fputs("\033[2J",stdout);*/
+	fputs("\033[2J",stdout);
+	fputs("\033[1;1H",stdout);
+
 
 	tcgetattr(STDIN_FILENO, &oldt);
 	newt = oldt;
-	newt.c_lflag &= (~ICANON);
-	newt.c_lflag &= (~ECHO);
+	newt.c_lflag &= (~ICANON | ECHO);
 	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-	printf("Which mode do you want?\n");
-	printf("Command mode : c / Input mode : i \n");
- 
-	/*now, we get input*/
 	while(condition){
-	
+		 printf("Which mode do you want?\n");
+ 	     printf("Command mode : c(C) / Input mode : i(I) Exit : q(Q) \n");
+
 		key = getchar();
 		ret = feof(stdin);
 		if (ret!= 0){
@@ -101,27 +97,12 @@ int main(int argc,char *argv[]){
 
 				case 'c':
 				case 'C':
-					mode = COMMAND_MODE;
+					mode = COMMAND_MODE;					
 					break;
 			
 				case 'i': 
 				case 'I':
 					mode = INPUT_MODE;
-					break;
-	
-				case 'd':
-				case 'D':
-					mode = DELETE_MODE;
-					break;
-
-				case 's':
-				case 'S':
-					mode = STORE_MODE;
-					break;
-
-				case 'b':
-				case 'B':
-					mode = BRING_MODE;
 					break;
 
 				case 'q':
@@ -132,27 +113,44 @@ int main(int argc,char *argv[]){
 			}//switch종료
 
 		fflush(stdin);//출력버퍼내용을 모두 지워준다.
+
 		if(mode == COMMAND_MODE){
 				system("clear");//창화면을 지우는 clear 명령어 실행
-				iOpen =open("Editor.txt",O_RDWR | O_CREAT,0644);
+				iOpen = open("Editor.txt","r");
+				//iOpen =open("Editor.txt",O_RDWR | O_CREAT,0644);
 				//open()은 반환값이 int이므로 iOpen에 담아준다.
-				//O_RDWE-읽기쓰기 가능
+				//O_RDWR-읽기쓰기 가능
 				//0_CREAT-파일이 없으면 생성
-				if(iOpen>0){//open()을 정상수행했다면 '1'이 반환되므FH
+				if(iOpen){//open()을 정상수행했다면 '1'이 반환되므로
 						tcgetattr(STDIN_FILENO,&oldt);
 						newt = oldt;
 						newt.c_lflag = ECHO;
 						newt.c_lflag = ICANON;
 						tcsetattr(STDIN_FILENO,TCSANOW,&newt);
 						condition = 1;
-						MovingCursor();			
-				}
-				 else{
-	                 printf("ERROR!\n");
-    	             exit(-1);//exit(-1);은 치명적인 에러
-         		}
+						MovingCursor();
+				}	
+				
+				/*key1 = getchar();	
+				switch(key1){
+						case 'i':
+						case 'I':
+							mode = INPUT_MODE;
+							tcattr(STDIN_FILENO,&curt);
+							newt = curt;
+							newt.c_lflag |= (ECHO);
+							tcsetattr(STDIN_FILENO,TCSANOW,&newt);
+							break;
+						
+						case '
+						
+				*/
+				// else{
+	              //   printf("ERROR!\n");
+    	            // exit(-1);//exit(-1);은 치명적인 에러
+         	//	}
 
-		}//COMMAND_MODE종료
+	//	}//COMMAND_MODE종료
 	
 		else if(mode == INPUT_MODE){
 				system("clear");
@@ -163,15 +161,15 @@ int main(int argc,char *argv[]){
 				newt.c_lflag &= ~ICANON;
 				tcsetattr(STDIN_FILENO, TCSANOW , &newt);
 
-				sprintf(buff,"\033[%d;%dH%3d:%3d",1,70,cur_line,cur_col);
-				fputs(buff,stdout);
-				sprintf(buff,"*INPUT_MODE*\033[%d;%dH",cur_line,cur_col);
-				fputs(buff,stdout);
-			
-				iOpen = open("editor.txt",O_RDWR|O_CREAT,0644);
+	//			sprintf(buff,"\033[%d;%dH%3d:%3d",1,70,cur_line,cur_col);
+	//			fputs(buff,stdout);
+	//			sprintf(buff,"*INPUT_MODE*\033[%d;%dH",cur_line,cur_col);
+	//			fputs(buff,stdout);
+		        iOpen = open("editor.txt","w");
+			//	iOpen = open("editor.txt",O_RDWR|O_CREAT,0644);
 
 				if(iOpen>0){
-					cur_col++;
+					cur_line++;
                     text[cur_col - 1][cur_line - 1];
 
 					if(cur_col>max_col){
@@ -179,7 +177,7 @@ int main(int argc,char *argv[]){
 						cur_line++;
 						if(cur_line>max_line) cur_line = max_line;
 					}
-					fread(text,100,50,iOpen);
+					fread(text,80,20,iOpen);
 					printf("%s\n",text);
 				}
 				scanf("%s",&text);
@@ -208,7 +206,7 @@ int main(int argc,char *argv[]){
 									tcgetattr(STDIN_FILENO,&oldt);
 									newt = oldt;
 									newt.c_lflag = ECHO;
-									tcsetatr(STDIN_FILENO,TCSANOW,&newt);
+									tcsetattr(STDIN_FILENO,TCSANOW,&newt);
 									exit(1);
 									break;
 				}
@@ -223,7 +221,7 @@ int main(int argc,char *argv[]){
 	}//while종료
 		return 0;
 }//main종료
-void MovingCursor(){
+int MovingCursor(){
 			enum MODES mode = COMMAND_MODE;
 			fputs("\033[2J",stdout);
 			fputs("\033[1;1H",stdout);	
@@ -235,7 +233,7 @@ void MovingCursor(){
 
 			sprintf(buff,"\033[%d;%dH%3d:%3d",1,70,cur_line,cur_col);
 			fputs(buff,stdout);
-			sprintf(buff,"*COMMAND_MODE*\033[%d;%dH",cur_line,cur_col);
+			sprintf(buff,"\033[%d;%dH",cur_line,cur_col);
 			fputs(buff,stdout);
 
 			fflush(stdin);
@@ -256,7 +254,7 @@ void MovingCursor(){
 									}						
 						
 									else{
-										cur_col=100;
+										cur_col=80;
 										cur_line--;
 										if(cur_line<min_line) cur_line = min_line;	
 										}
@@ -280,7 +278,7 @@ void MovingCursor(){
 						case 'l':
 						case 'L':
 						
-								if(cur_line == 50 && cur_col == 100) {
+								if(cur_line ==20 && cur_col == 80) {
 									cur_col= max_col;
                     				cur_line = max_line;
 								}
@@ -317,7 +315,7 @@ void MovingCursor(){
 					tcsetattr(STDIN_FILENO,TCSANOW,&oldt);
 
 			
-		sprintf(buff, "\033[%d;%dH%3d:%3d" ,1,70,cur_line,cur_col);
+		sprintf(buff, "\033[%3d;%3dH%3d:%3d",1,70,cur_line,cur_col);
 		fputs(buff,stdout);
 		sprintf(buff,"\033[%d;%dH",cur_line,cur_col);
 		fputs(buff,stdout);
